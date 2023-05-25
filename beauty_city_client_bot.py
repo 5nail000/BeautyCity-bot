@@ -77,7 +77,6 @@ def main_menu(message):
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
-    print(call.data)
 
     if 'users' not in bot.__dict__.keys():      # Если сервер перезапускался, то клиент вернётся на стартовую страницу
         bot.__dict__.update({'users': {}})
@@ -91,9 +90,7 @@ def callback_inline(call):
     if call.data.startswith('master'): choose_date(call.message, int(args[1]))
     if call.data.startswith('choose_date_back'): choose_date(call.message)
     if call.data.startswith('choose_time'): choose_time(call.message, args[1])
-
-    if call.data == 'confirmation':
-        confirmation(call.message, args[1])
+    if call.data.startswith('confirmation'): confirmation(call.message, args[1])
 
     if call.data.startswith('successful_booking'): successful_booking(call.message)
 
@@ -190,12 +187,10 @@ def choose_time(message, date=None):
 
 def confirmation(message, time=None):
 
-    print(message)
-
     user_data = bot.__dict__['users'][message.chat.id]
     if time:
         user_data.update({'time': time})
-        user_data.update({'last_message_id':message.id})
+        user_data.update({'last_message_id': message.id})
     else:
         time = user_data['time']
 
@@ -205,13 +200,12 @@ def confirmation(message, time=None):
     dialogue_text += f'Время: {user_data["time"]}' + '\n\n'
 
     if user_data['first_time']:
-        print('True')
         markup = types.InlineKeyboardMarkup(row_width=1)
         markup.row(types.InlineKeyboardButton('<< Назад', callback_data='choose_time#'))
         dialogue_text += 'Отправьте в чат, свой контактный номер.\n\n'
         dialogue_text += 'Отправляя нам свой телефон, Вы подтверждаете своё согласие на обработку Ваших данных.\n'
         dialogue_text += 'Более подробно с текстом соглашения можно ознакомиться по ссылке: www.confirmation.ru'
-        bot.edit_message_text(dialogue_text, message.chat.id, reply_markup=markup)
+        bot.edit_message_text(dialogue_text, message.chat.id, message.id, reply_markup=markup)
         bot.register_next_step_handler(message, get_phone)
     else:
         print('Not_First')
